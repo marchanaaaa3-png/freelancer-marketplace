@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Freelancer Marketplace</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input, textarea {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      width: 300px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .job {
+      background: white;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Freelancer Marketplace 💼</h1>
+
+<h2>Post a Job</h2>
+
+<input id="title" placeholder="Job Title">
+<textarea id="description" placeholder="Job Description"></textarea>
+<input id="budget" placeholder="Budget">
+
+<button onclick="addJob()">Add Job</button>
+
+<h2>All Jobs</h2>
+<div id="jobs"></div>
+
+<script>
+const API = "http://localhost:5000/api/jobs";
+
+// Load jobs
+async function loadJobs() {
+  const res = await fetch(API);
+  const jobs = await res.json();
+
+  const container = document.getElementById("jobs");
+  container.innerHTML = "";
+
+  jobs.forEach(job => {
+    const div = document.createElement("div");
+    div.className = "job";
+    div.innerHTML = `
+  <strong>${job.title}</strong><br>
+  ${job.description}<br>
+  💰 ${job.budget}<br><br>
+
+  <button onclick="deleteJob('${job._id}')">Delete</button>
+`)};
+// Add job
+async function addJob() {
+  const title = document.getElementById("title").value;
+  const description = document.getElementById("description").value;
+  const budget = document.getElementById("budget").value;
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, description, budget })
+  });
+
+  loadJobs();
+}
+// Load on start
+loadJobs();
+</script>
+
+</body>
+</html>

@@ -1,23 +1,63 @@
-const router = require("express").Router();
-const User = require("../models/User");
+const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-router.post("/signup", async (req,res)=>{
-  const hashed = await bcrypt.hash(req.body.password,10);
-  const user = await User.create({...req.body,password:hashed});
-  res.json(user);
+const router = express.Router();
+
+const User = require("../models/users");
+
+// Signup
+router.post("/signup", async (req, res) => {
+
+  const { name, email, password } = req.body;
+
+  const hashedPassword =
+    await bcrypt.hash(password, 10);
+
+  const user = new User({
+    name,
+    email,
+    password: hashedPassword
+  });
+
+  await user.save();
+
+  res.json({
+    message: "User Registered"
+  });
 });
 
-router.post("/login", async (req,res)=>{
-  const user = await User.findOne({email:req.body.email});
-  if(!user) return res.status(400).send("User not found");
+// Login
+router.post("/login", async (req, res) => {
 
-  const valid = await bcrypt.compare(req.body.password,user.password);
-  if(!valid) return res.status(400).send("Wrong password");
+  const { email, password } = req.body;
 
-  const token = jwt.sign({id:user._id}, process.env.JWT_SECRET);
-  res.json({token});
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.json({
+      message: "User not found"
+    });
+  }
+
+  const validPassword =
+    await bcrypt.compare(password, user.password);
+
+  if (!validPassword) {
+    return res.json({
+      message: "Wrong password"
+    });
+  }
+
+  const token = jwt.sign(
+    { id: user._id },
+    "secretkey"
+  );
+
+  res.json({
+    message: "Login Successful",
+    token
+  });
 });
 
 module.exports = router;
